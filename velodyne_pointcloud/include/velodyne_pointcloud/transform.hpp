@@ -43,6 +43,8 @@
 #include <tf2_ros/transform_listener.h>
 #include <velodyne_msgs/msg/velodyne_scan.hpp>
 
+#include "conav_diagnostics_msgs/msg/heartbeat.hpp"
+
 #include <memory>
 #include <string>
 
@@ -67,6 +69,8 @@ private:
 
   std::unique_ptr<velodyne_rawdata::RawData> data_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr output_;
+  rclcpp::Publisher<conav_diagnostics_msgs::msg::Heartbeat>::SharedPtr heartbeat_pub_;
+
   rclcpp::Subscription<velodyne_msgs::msg::VelodyneScan>::SharedPtr velodyne_scan_;
 
   std::unique_ptr<velodyne_rawdata::DataContainerBase> container_ptr_;

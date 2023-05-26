@@ -48,6 +48,8 @@
 #include "velodyne_pointcloud/pointcloudXYZIRT.hpp"
 #include "velodyne_pointcloud/rawdata.hpp"
 
+#include "conav_diagnostics_msgs/msg/heartbeat.hpp"
+
 namespace velodyne_pointcloud
 {
 
@@ -118,6 +120,8 @@ Transform::Transform(const rclcpp::NodeOptions & options)
 
   // advertise output point cloud (before subscribing to input data)
   output_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("velodyne_points", 10);
+  heartbeat_pub_ = this->create_publisher<conav_diagnostics_msgs::msg::Heartbeat>("heartbeat", 1);
+
 
   velodyne_scan_ = this->create_subscription<velodyne_msgs::msg::VelodyneScan>(
     "velodyne_packets", 10, std::bind(&Transform::processScan, this, std::placeholders::_1));
@@ -145,6 +149,8 @@ Transform::Transform(const rclcpp::NodeOptions & options)
 void Transform::processScan(
   const velodyne_msgs::msg::VelodyneScan::ConstSharedPtr scanMsg)
 {
+  conav_diagnostics_msgs::msg::Heartbeat heartbeat_msg;
+  heartbeat_msg.header = msg->header;
   if (output_->get_subscription_count() == 0 &&
     output_->get_intra_process_subscription_count() == 0)    // no one listening?
   {
@@ -169,9 +175,12 @@ void Transform::processScan(
     }
     data_->unpack(scanMsg->packets[i], *container_ptr_, scanMsg->header.stamp);
   }
-
   // publish the accumulated cloud message
+
+  heartbeat_msg.active = true;
+
   output_->publish(container_ptr_->finishCloud());
+  heartbeat_pub_->publish(heartbeat_msg);
   diag_topic_->tick(scanMsg->header.stamp);
 }
 
