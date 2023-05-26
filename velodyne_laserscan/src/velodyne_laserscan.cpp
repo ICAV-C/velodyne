@@ -42,6 +42,8 @@
 #include <sensor_msgs/msg/point_field.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 
+#include "conav_diagnostics_msgs/msg/heartbeat.hpp"
+
 #include <cmath>
 #include <functional>
 #include <memory>
@@ -77,10 +79,13 @@ VelodyneLaserScan::VelodyneLaserScan(const rclcpp::NodeOptions & options)
     "velodyne_points", rclcpp::QoS(10),
     std::bind(&VelodyneLaserScan::recvCallback, this, std::placeholders::_1));
   pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan", 10);
+  heartbeat_pub_ = this->create_publisher<conav_diagnostics_msgs::msg::Heartbeat>("heartbeat", 1);
 }
 
 void VelodyneLaserScan::recvCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
+  conav_diagnostics_msgs::msg::Heartbeat heartbeat_msg;
+  heartbeat_msg.header = msg->header;
   // Latch ring count
   if (!ring_count_) {
     // Check for PointCloud2 field 'ring'
@@ -250,8 +255,10 @@ void VelodyneLaserScan::recvCallback(const sensor_msgs::msg::PointCloud2::Shared
         }
       }
     }
+    heartbeat_msg.active = true;
 
     pub_->publish(std::move(scan));
+    heartbeat_pub_->publish(heartbeat_msg);
   } else {
     RCLCPP_ERROR(
       this->get_logger(),
