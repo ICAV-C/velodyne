@@ -149,8 +149,8 @@ Transform::Transform(const rclcpp::NodeOptions & options)
 void Transform::processScan(
   const velodyne_msgs::msg::VelodyneScan::ConstSharedPtr scanMsg)
 {
-  conav_diagnostics_msgs::msg::Heartbeat heartbeat_msg;
-  heartbeat_msg.header = msg->header;
+  conav_diagnostics_msgs::msg::Heartbeat heartbeat_msg; //  TODO: Test the consistency of this message by declaring it in constructor 
+  heartbeat_msg.header = scanMsg->header;
   if (output_->get_subscription_count() == 0 &&
     output_->get_intra_process_subscription_count() == 0)    // no one listening?
   {
