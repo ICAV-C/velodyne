@@ -55,6 +55,7 @@ ament_target_dependencies(transform
   rclcpp_components
   tf2
   tf2_ros
+  conav_diagnostics_msgs
 )
 target_link_libraries(transform
   velodyne_cloud_types
